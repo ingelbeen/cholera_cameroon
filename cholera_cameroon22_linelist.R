@@ -2,7 +2,8 @@
 # CHOLERA OUTBREAK, CAMEROON, 2022   #
 # OUTBREAK DESCRIPTION               #
 ######################################
-# last update Brecht Ingelbeen 08 March 2022: create script
+# last update Brecht Ingelbeen 08 March 2023: create script
+# push to github 21 April 2023
 #### install and load packages ####
 # install.packages("pacman")
 pacman::p_load(here,readxl,lubridate,haven,dplyr,ggplot2,ggmap,osmdata,scales,zoo,reshape2,tidyr,stringr,wesanderson,tidyr, knitr, epitools, naniar, survey, ggpattern)
