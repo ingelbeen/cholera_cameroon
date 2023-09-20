@@ -2,33 +2,120 @@
 # CHOLERA OUTBREAK, CAMEROON, 2022   #
 # CASE-CONTROL STUDY                 #
 ######################################
-# last update Brecht Ingelbeen 08 March 2023: create script
-# pushed to github 21/04/2023 as a test
+# last update Brecht Ingelbeen 20 Sep 2023: update conditional log regression, adding matching var in updated database and creating new log regr model
+
 #### install and load packages ####
 # install.packages("pacman")
-pacman::p_load(here,readxl,lubridate,haven,dplyr,ggplot2,ggmap,osmdata,gtsummary,zoo,reshape2,tidyr,stringr,wesanderson,tidyr, knitr, epitools, naniar, survey, ggpattern, tidyverse)
+pacman::p_load(here,readxl,lubridate,haven,dplyr,ggplot2,ggmap,osmdata,gtsummary,zoo,reshape2,tidyr,stringr,wesanderson,tidyr, knitr, epitools, naniar, survey, ggpattern, tidyverse, survival)
 
 #### import data ####
-cc <- read_excel("Cholera Case Control Final Data.xlsx", sheet = "data", 
-                 col_types = c("date", "date", "text", "text", "text", "text",  "date", "text", "text", "text", "text", "date", "numeric", "text", "text", 
-                                                     "text", "text", "text", "text", "numeric", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "text", "text", 
-                                                     "text", "text", "text", "text", "text",  "text", "numeric", "numeric", "numeric", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", 
-                                                     "numeric", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "numeric", 
-                                                     "numeric", "numeric", "numeric",   "numeric", "numeric", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "text", 
-                                                     "text", "numeric", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "text", "text", 
-                                                     "numeric", "numeric", "numeric", "numeric", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "numeric", "numeric", "numeric", 
-                                                     "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", 
-                                                     "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "text", "text", "numeric", "numeric", 
-                                                     "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "numeric", "numeric", "numeric", 
-                                                     "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "text", "text", "numeric", "numeric", "numeric", "text", "text", "text", 
-                                                     "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "numeric", "text", "numeric", "numeric", "numeric", "numeric", "numeric", 
-                                                     "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", 
-                                                     "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", 
-                                                     "numeric", "numeric", "numeric", "numeric", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text",
-                                                     "text", "text", "text", "text", "numeric", "numeric", 
-                                                     "numeric", "numeric", "text", "text", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", 
-                                                     "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", 
-                                                     "numeric", "text", "text", "numeric", "text", "numeric", "numeric", "numeric", "text", "numeric", "numeric", "numeric"))
+# cc <- read_excel("Cholera Case Control Final Data.xlsx", sheet = "data", 
+#                  col_types = c("date", "date", "text", "text", "text", "text",  "date", "text", "text", "text", "text", "date", "numeric", "text", "text", 
+#                                                      "text", "text", "text", "text", "numeric", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "text", "text", 
+#                                                      "text", "text", "text", "text", "text",  "text", "numeric", "numeric", "numeric", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", 
+#                                                      "numeric", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "numeric", 
+#                                                      "numeric", "numeric", "numeric",   "numeric", "numeric", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "text", 
+#                                                      "text", "numeric", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "text", "text", 
+#                                                      "numeric", "numeric", "numeric", "numeric", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "numeric", "numeric", "numeric", 
+#                                                      "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", 
+#                                                      "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "text", "text", "numeric", "numeric", 
+#                                                      "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "numeric", "numeric", "numeric", 
+#                                                      "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "text", "text", "numeric", "numeric", "numeric", "text", "text", "text", 
+#                                                      "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "numeric", "text", "numeric", "numeric", "numeric", "numeric", "numeric", 
+#                                                      "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", 
+#                                                      "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", 
+#                                                      "numeric", "numeric", "numeric", "numeric", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text",
+#                                                      "text", "text", "text", "text", "numeric", "numeric", 
+#                                                      "numeric", "numeric", "text", "text", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", 
+#                                                      "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", 
+#                                                      "numeric", "text", "text", "numeric", "text", "numeric", "numeric", "numeric", "text", "numeric", "numeric", "numeric"))
+
+cc <- read_excel("Cholera Case Control Final Data_Sep2023matchingvar.xlsx", 
+                  sheet = "data", col_types = c("date", 
+                                                "date", "text", "text", "text", "text", 
+                                                "text", "date", "text", "text", "text", 
+                                                "text", "date", "numeric", "text", 
+                                                "text", "text", "text", "text", "text", 
+                                                "numeric", "text", "text", "text", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "text", "text", "text", 
+                                                "text", "text", "text", "text", "text", 
+                                                "text", "text", "text", "numeric", 
+                                                "numeric", "numeric", "text", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "text", "text", "text", "text", "text", 
+                                                "text", "text", "text", "text", "text", 
+                                                "text", "text", "text", "text", "text", 
+                                                "text", "text", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "text", "text", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "text", "text", "text", 
+                                                "text", "text", "numeric", "text", 
+                                                "text", "text", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "text", "text", 
+                                                "text", "text", "text", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "text", "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "text", "text", 
+                                                "text", "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "text", "text", "text", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "text", "text", "text", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "text", "text", "text", 
+                                                "text", "text", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "text", "text", "text", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "text", "text", "text", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "text", "text", "text", 
+                                                "text", "text", "numeric", "numeric", 
+                                                "numeric", "text", "text", "text", 
+                                                "text", "text", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "text", "text", "numeric", 
+                                                "text", "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "text", "text", "text", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "text", "text", 
+                                                "text", "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "text", "text", "text", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "text", "text", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "text", "text", "text", 
+                                                "text", "text", "text", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "text", "text", "numeric", "numeric", 
+                                                "numeric", "numeric", "text", "text", 
+                                                "text", "text", "text", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "text", "text", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "numeric", "numeric", "numeric", 
+                                                "text", "text", "numeric", "text", 
+                                                "numeric", "numeric", "numeric", 
+                                                "text", "numeric", "numeric", "numeric"))
 
 # reasons for relocating are in another tab of the excel
 IDPdetail <- read_excel("Cholera Case Control Final Data.xlsx", 
@@ -135,15 +222,6 @@ cc$`Q24. Type of current accommodation`[cc$`Q24. Type of current accommodation`=
 cc$`Q24. Type of current accommodation`[cc$`Q24. Type of current accommodation`=="Group accommodation within the same space: orphanage"] <- "Other"
 cc$`Q24. Type of current accommodation`[cc$`Q24. Type of current accommodation`=="Group accommodation within the same space: other"] <- "Other"
 
-# matchingvariable
-cc$matched <- tolower(cc$`Q2. Study Code:`)
-cc$matched <- gsub("o", "0", cc$matched)
-cc$matched <- gsub("\\s+|-", "", cc$matched)
-cc$first_two <- substr(cc$matched, 1, 2) # keep first two characters
-cc$right_three <- substr(cc$matched, start = nchar(cc$matched) - 2, stop = nchar(cc$matched))
-cc$matchednew <- paste0(cc$first_two, cc$right_three)
-table(cc$matchednew)
-
 # municip
 cc$municip <- tolower(cc$`Q17. Current municipality (district) where participant lives at the moment:`)
 
@@ -157,6 +235,10 @@ cc <- cc %>% rename(age = `Q9. Age:`, sex = `Q10. Sex:`, education = `Q11. Educa
                     waterstorage = `Q48. How is drinking water stored today?:`,
                     waterunavailability = `Q39. How frequently do you experience pipe-borne water unavailability? :`,
                     healthdistrict = `Q6. Name of Health district:`)
+
+# for condit log regr, create binary case control var
+cc$casecontrolbin[cc$casecontrol=="control"] <- 0
+cc$casecontrolbin[cc$casecontrol=="case"] <- 1
 
 # convert character variables to factor variables
 cc$agegr_3levels <- factor(cc$agegr_3levels)
@@ -177,6 +259,8 @@ cc$traveltoNigeria <- factor(cc$traveltoNigeria)
 cc$travelhistory <- factor(cc$travelhistory)
 cc$casecontrol <- as.factor(cc$casecontrol)
 cc$IDP <- as.factor(cc$IDP)
+cc$casecontrolbin[cc$casecontrol=="control"] <- 0
+cc$casecontrolbin[cc$casecontrol=="case"] <- 1
 
 # ensure an order that makes sense
 # view the levels of the factor variable
@@ -203,6 +287,25 @@ cc$waterstorage <- relevel(cc$waterstorage, ref = "Jerrycans/gallons")
 cc$watersource <- relevel(cc$watersource, ref = "Tap water (Public)")
 cc$residencetype <- relevel(cc$residencetype, ref = "Stable accommodation (did not relocate during the past 5 years)" )
 cc$IDP <- relevel(cc$IDP, ref = "no")
+
+# matchingvariable
+cc$matched <- tolower(cc$matchedcode)
+cc$matched <- gsub("o", "0", cc$matched)
+# cc$matched <- gsub("\\s+|-", "", cc$matched)
+# cc$first_two <- substr(cc$matched, 1, 2) # keep first two characters
+# cc$right_three <- substr(cc$matched, start = nchar(cc$matched) - 2, stop = nchar(cc$matched))
+# cc$matchednew <- paste0(cc$first_two, cc$right_three)
+
+# remove non matched observations (not exactly two occurences of the matched code)
+matched_counts <- cc %>%
+  group_by(matched) %>%
+  summarise(count = n()) %>%
+  filter(count == 2)
+cc <- cc %>%
+  filter(matched %in% matched_counts$matched)
+
+
+
 
 
 
@@ -255,6 +358,17 @@ univ_tab_df <- as.data.frame(univ_tab$table_body)
 
 # export
 write.table(univ_tab_df, file = "univ_tab_df.txt")
+
+#### conditional log regression ####
+# Fit the conditional logistic regression model
+model <- clogit(casecontrolbin ~ income + agegr_3levels + sex + strata(matched), data = cc)
+
+# Summarize the results
+summary(model)
+
+# Calculate odds ratios and 95% confidence intervals
+exp(coef(model))
+confint(model)
 
 #### multivariable logistic regression to control for district (and potentially age group)  ####
 # remove observations with missing values for vars of itnerest
