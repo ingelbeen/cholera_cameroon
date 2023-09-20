@@ -3,7 +3,7 @@
 # CASE-CONTROL STUDY                 #
 ######################################
 # last update Brecht Ingelbeen 08 March 2023: create script
-# pushed to github 21/04/2023
+# pushed to github 21/04/2023 as a test
 #### install and load packages ####
 # install.packages("pacman")
 pacman::p_load(here,readxl,lubridate,haven,dplyr,ggplot2,ggmap,osmdata,gtsummary,zoo,reshape2,tidyr,stringr,wesanderson,tidyr, knitr, epitools, naniar, survey, ggpattern, tidyverse)
